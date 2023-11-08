@@ -14,7 +14,7 @@ set -ex
 source .env
 
 # Eliminar el archivo de codigo fuente descargado previamente.
-rm -rf /tmp/wordpress/latest.zip*
+rm -rf /tmp/wordpress/latest.zip.*
 # Descargamos el codigo fuente
 wget http://wordpress.org/latest.zip -P /tmp
 
@@ -22,13 +22,13 @@ wget http://wordpress.org/latest.zip -P /tmp
 apt install unzip -y
 
 # Descomprimimos el archivo latest.zip
-unzip -u /tmp/latest.zip -d /tmp/wordpress/
+unzip -u /tmp/latest.zip -d /tmp/
 
 # Eliminamos instalaciones previas de wordpress en /var/www/html
 rm -rf /var/www/html/*
 
 # Movemos el contenido de /tmp/wordpress a /var/www/html
-mv -f /tmp/wordpress/* /var/www/html
+mv -f /tmp/wordpress /var/www/html
 
 # Creamos la base de la bbase de datos y el usuario de la base de datos.
 mysql -u root <<< "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME"
@@ -45,9 +45,6 @@ sed -i "s/database_name_here/$WORDPRESS_DB_NAME/" /var/www/html/wordpress/wp-con
 sed -i "s/username_here/$WORDPRESS_DB_USER/" /var/www/html/wordpress/wp-config.php
 sed -i "s/password_here/$WORDPRESS_DB_PASSWORD/" /var/www/html/wordpress/wp-config.php
 sed -i "s/localhost/$WORDPRESS_DB_HOST/" /var/www/html/wordpress/wp-config.php
-
-# Cambiamos el propietario para wordpress.
-chown -R www-data:www-data /var/www/html/
 
 # Configuramos la variables WP_SITEURL y WP_HOME del archivo de configuración wp-config.php
 
@@ -66,5 +63,6 @@ a2enmod rewrite
 # Reiniciamos el servicio.
 systemctl restart apache2
 
-# Copiamos el archivo .htaccess
-cp ../conf/.htaccess /var/www/html/wordpress
+
+# Cambiamos el propietario para wordpress.
+chown -R www-data:www-data /var/www/html/
