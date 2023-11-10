@@ -63,6 +63,5 @@ a2enmod rewrite
 # Reiniciamos el servicio.
 systemctl restart apache2
 
-
 # Cambiamos el propietario para wordpress.
 chown -R www-data:www-data /var/www/html/

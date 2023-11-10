@@ -52,3 +52,15 @@ sed -i "s/localhost/$WORDPRESS_DB_HOST/" /var/www/html/wp-config.php
 
 # Cambiamos el propietario para wordpress.
 chown -R www-data:www-data /var/www/html/
+
+# Habilitamos el modulo mod_rewrite de apache.
+a2enmod rewrite
+
+# Copiar a /var/www/html el directorio htaccess
+cp ../conf/.htaccess /var/www/html
+
+# Reiniciamos el servicio.
+systemctl restart apache2
+
+# Cambiamos el propietario para wordpress.
+chown -R www-data:www-data /var/www/html/
