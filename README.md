@@ -349,11 +349,47 @@ a2enmod rewrite
 ```
 Esto hace que el acceso a los recursos sea mejor accesible y mas fácil de recordar, esto es ayudado por el fichero htaccess junto con la directiva AllowOverride All.
 
+A esto me refería con lo de antes:
+
+```python
+ServerSignature Off
+ServerTokens Prod
+<VirtualHost *:80>
+    #ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/html
+    DirectoryIndex index.php index.html 
+    
+    <Directory "/var/www/html/">
+        AllowOverride All
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+He establecido la directiva AllowOverride en /var/www/html para que funcione el archivo htaccess.
+
 # 3.17 Copiar a /var/www/html el directorio htaccess
 ```
 cp ../conf/.htaccess /var/www/html
 ```
 Copiamos el fichero htaccess a la ruta /var/www/html para que lo ejecute apache cuando lo requiera.
+
+Donde htaccess tiene lo siguiente:
+```
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+```
+Hablando del mod-rewrite anterior lo que hace es activarlo y partir de la raiz, aplicandolo a todo lo que empiez por index estableciendo una serie de condiciones dependiento de si es un fichero, lo mostrara y si es un directorio, tambien, ¿si no? pasará al index.php para mostrar lo que deba.
+
 # 3.18 Reiniciamos el servicio.
 ```
 systemctl restart apache2
@@ -363,4 +399,4 @@ Reiniciamos el servicio, para que se aplique el modulo rewrite.
 ```
 chown -R www-data:www-data /var/www/html/
 ```
-Cambiamos el propietario para que pueda acceder a los recursos de /var/www/html
+Cambiamos el propietario para que pueda acceder a los recursos de /var/www/html.
