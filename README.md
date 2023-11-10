@@ -8,14 +8,15 @@ Donde, como base de la pila lamp vamos a instalar wordpress, desde la raiz hasta
 ### Con esto, buscamos hacer un despligue de aplicaciones.
 
 # Muestra todos los comandos que se han ejeutado.
-
+```
 set -ex
-
+```
 <p>Se interrumpe el script si hay algún fallo a lo largo de la ejecución del código</p>
 
 # Actualización de repositorios
+```
  sudo apt update
-
+```
 # Actualización de paquetes
 # sudo apt upgrade  
 
@@ -223,82 +224,143 @@ Tras eso, hemos creado un enlace simbolico en ``/usr/bin`` para que se ejecute u
 certbot --apache -m $CERTIFICATE_EMAIL --agree-tos --no-eff-email -d $CERTIFICATE_DOMAIN --non-interactive
 ```
 
+Nosotros si solo insertasemos ``certbot --apache``, lo ejecutaría pero, interrumpería la automatización del script, ya que buscamos que se realice automáticamente, esto se debe a que aparecen asistentes donde hay que insertar una serie de datos.
+
+```python
+--apache: Esto significa que da el certificado para apache.
+-m: Establecemos la direccion de correo la cual la contiene la variable $CERTIFICATE_EMAIL del archivo .env, se puede cambiar por otra.
+--agree-tos: Con esto aceptamos terminos de uso.
+--no-eff-email: Con esto no compartimos nuestro email con la EFF.
+-d: El dominio que contiene la variable: $CERTIFICATE_DOMAIN.
+--non-interactive: Para que declarar que se hace de forma no interactiva. 
+```
+
 # 3.Alternativas de instalación
 <p>Se puede instalar de dos formas, en el directorio raiz, o en un directorio propio de wordpress, la variación entre los dos es mínima cuando se instala.</p>
 
 # 3.1- Instalación de wordpress en la ``raiz``.
-
+```
 #!/bin/bash
-
+```
 <p>Elegimos el interprete de comandos por defecto.</p>
 
-# 3.2 Muestra todos los comandos que se han ejeutado.
-
+# 3.2 Muestra todos los comandos que se han ejecutado.
+```
 set -ex
-
+```
 <p>Interrumpimos el script cuando haya un problema.</p>
 
 # 3.3 Actualización de repositorios
-
+```
  sudo apt update
-
+```
 <p>Actualizamos los repositorios, para evitar problemas a la hora de instalar software.</p> 
 
 # 3.4 Incluimos las variables del archivo .env.
-
+```
 source .env
-
+```
 Dentro de este archivo se encuentran las variables siguientes: 
+```
+# Configuramos variables
+#-----------------------------#
+WORDPRESS_DB_NAME=wordpress
+WORDPRESS_DB_USER=wp_user
+WORDPRESS_DB_PASSWORD=wp_pass
+IP_CLIENTE_MYSQL=localhost
+WORDPRESS_DB_HOST=localhost
+```
 
+<p>Estas variables se necesitan para la creación de la base de datos de wordpress, la creación del usuario, y creación del acceso a dicha base de datos, se pueden modificar con el nombre que se deseen.</p>
 
 # 3.5 Eliminar el archivo de codigo fuente descargado previamente.
+```
 rm -rf /tmp/latest.zip*
-# 3.6 Descargamos el codigo fuente
+```
+<p>Este comando elimina el codigo fuente de wordpress antes de descargarlo para que no se guarden muchas veces el mismo fichero.</p>
+
+# 3.6 Descargamos el codigo fuente de wordpress
+```
 wget http://wordpress.org/latest.zip -P /tmp
+```
+<p>Con esto lo que vamos a hacer es obtener la última version de wordpress comprimida en zip y con el comando -P lo mandamos al directorio /tmp.</p>
 
 # 3.7 Instalar el comando unzip.
+```
 apt install unzip -y
-
+```
+Instalamos unzip para descomprimirlo, con la opción -y para que lo haga automáticamente.
 # 3.8 Descomprimimos el archivo latest.zip
+```
 unzip -u /tmp/latest.zip -d /tmp/
+```
+Lo descomprimimos en el destino directorio de destino /tmp/.
 
 # 3.9 Eliminamos instalaciones previas de wordpress en /var/www/html
+```
 rm -rf /var/www/html/*
+```
+Tras eso eliminamos las instalaciones previas de wordpress, ya que posteriormente se manda el contenido de wordpress a /var/www/html, la eliminación que realizamos es, de forma recursiva y por la fuerza.
 
 # 3.10 Movemos el contenido de /tmp/wordpress a /var/www/html
+```
 mv -f /tmp/wordpress/* /var/www/html
+```
+Tras eso, aquí movemos por la fuerza el contenido de wordpress a /var/www/html para que apache pueda mostrarlo.
 
-# 3.11 Mover el contenido de /tmp/wordpress a /var/www/html.
+# Mover el contenido de /tmp/wordpress a /var/www/html.
+```
 mv -f /tmp/wordpress /var/www/html
-
+```
+Tras eso, aquí movemos por la fuerza el contenido de wordpress a /var/www/html para que apache pueda mostrarlo.
 # 3.12 Creamos la base de la bbase de datos y el usuario de la base de datos.
+```
 mysql -u root <<< "DROP DATABASE IF EXISTS $WORDPRESS_DB_NAME"
 mysql -u root <<< "CREATE DATABASE $WORDPRESS_DB_NAME"
 mysql -u root <<< "DROP USER IF EXISTS $WORDPRESS_DB_USER@$IP_CLIENTE_MYSQL"
 mysql -u root <<< "CREATE USER $WORDPRESS_DB_USER@$IP_CLIENTE_MYSQL IDENTIFIED BY '$WORDPRESS_DB_PASSWORD'"
 mysql -u root <<< "GRANT ALL PRIVILEGES ON $WORDPRESS_DB_NAME.* TO $WORDPRESS_DB_USER@$IP_CLIENTE_MYSQL"
+```
+Con las variables que hemos designado en el archivo .env estas variables que se encuentran definidas en ese archivo y se llaman a traves source .env, contienen datos con los que se van a rellenar automaticamente al insertar esas instrucciones al usuario root de mysql para que los cree el mismo en ese proceso, desde la base de datos hasta el usuario en cuestión.
 
 # 3.13 Creamos nuestro archivo de configuración de wordpress
-
+```
 cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+```
+Creamos este fichero, dicho fichero es de los mas importantes en wordpress, permitiendo la configuración básica de wordpress y el acceso a las bases de datos, además de que se encuentran ficheros de registro, basados en errores.
 
 # 3.14 Configuramos las variables del archivo de configuracion de wordpress
+```
 sed -i "s/database_name_here/$WORDPRESS_DB_NAME/" /var/www/html/wp-config.php
 sed -i "s/username_here/$WORDPRESS_DB_USER/" /var/www/html/wp-config.php
 sed -i "s/password_here/$WORDPRESS_DB_PASSWORD/" /var/www/html/wp-config.php
 sed -i "s/localhost/$WORDPRESS_DB_HOST/" /var/www/html/wp-config.php
+```
+Empleamos el ``comando sed`` bajo la orden ``-i`` y ``"s"`` precedido de ``"/"`` con la intención de que con el ``-i`` se inserten en vez de que los muestre unicamente por pantalla y que con la ``s`` realice un ``"busca y reemplazo"`` basandose en que a la *izquierda se encuentra lo que se quiere sustituir y lo que se va a poner*.
 
 # 3.15 Cambiamos el propietario para wordpress.
+```
 chown -R www-data:www-data /var/www/html/
-
+```
+Se cambian los permisos para que el usuario www-data de apache pueda ejecutar el contenido de la ruta /var/www/html/
 # 3.16 Habilitamos el modulo mod_rewrite de apache.
+```
 a2enmod rewrite
+```
+Esto hace que el acceso a los recursos sea mejor accesible y mas fácil de recordar, esto es ayudado por el fichero htaccess junto con la directiva AllowOverride All.
 
 # 3.17 Copiar a /var/www/html el directorio htaccess
+```
 cp ../conf/.htaccess /var/www/html
-
+```
+Copiamos el fichero htaccess a la ruta /var/www/html para que lo ejecute apache cuando lo requiera.
 # 3.18 Reiniciamos el servicio.
+```
 systemctl restart apache2
-
+```
+Reiniciamos el servicio, para que se aplique el modulo rewrite.
 # 3.19 Cambiamos el propietario para wordpress.
+```
 chown -R www-data:www-data /var/www/html/
+```
+Cambiamos el propietario para que pueda acceder a los recursos de /var/www/html
